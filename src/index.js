@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const port = 3000;
+const request = require('request');
  
 app.get('/', (req, res) => res.send('Hello World!'));
  
@@ -25,17 +26,34 @@ client.setInterval(async () => {
 
   if (!data) return
 
-  const { price, symbol, circSupply } = data
-
-  client.guilds.cache.forEach(async (guild) => {
-    const botMember = guild.me
-    await botMember.setNickname(`${symbol}: $${numberWithCommas(price)}`)
-  })
-
+  const { price, symbol, change } = data
+  console.log('Price ' + price + ' Change ' + change)
+  
   client.user.setActivity(
-    `MC: $${numberWithCommas(Math.round(price * circSupply))}`,
+    `${symbol} Price: $${numberWithCommas(price)} ${change}`,
     { type: 'WATCHING' },
   )
 }, 1 * 60 * 1000)
 
+
 client.login(process.env.DISCORD_API_TOKEN)
+
+client.on('message', (msg) => {
+  if (msg.content === '$price') {
+    request('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=boring-protocol', (error, response, body) => {
+      console.log('Response ' + response)
+      console.log('Error ' + error)
+      if (error) {
+        console.log(error)
+        msg.reply('Unable to fetch price. Please retry later.')
+      }
+      else {
+      let object = JSON.parse(body);
+      const val = object.current_price
+      const ch = object.price_change_percentage_24h + '%'
+        msg.reply(`BOP current price: $${val}. Percentage changed in the last 24 hrs is ${ch}`)
+      }
+})
+
+}
+                              });
