@@ -9,9 +9,16 @@ exports.fetchData = async () => {
 
     const price = tokenData.market_data.current_price.usd
     const symbol = tokenData.symbol.toUpperCase()
-    const circSupply = tokenData.market_data.circulating_supply
+    let change
+    if (tokenData.market_data.price_change_percentage_24h > 0) {
+      change = '⬆️' + tokenData.market_data.price_change_percentage_24h + '%'
+    }
+    else {
+      change = '⬇️' + tokenData.market_data.price_change_percentage_24h + '%'
+    }
+    console.log('Price ' + price + 'Change ' + change)
 
-    return { price, symbol, circSupply }
+    return { price, symbol, change }
   } catch (err) {
     console.log(err)
     return undefined
