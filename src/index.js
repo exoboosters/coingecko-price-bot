@@ -1,17 +1,26 @@
 const express = require('express');
 const app = express();
 const port = 3000;
-const request = require('request');
- 
+const request = require('request')
+
 app.get('/', (req, res) => res.send('Hello World!'));
- 
+
 app.listen(port, () => console.log(`Example app listening at http://localhost:${port}`));
 
-const { Client } = require('discord.js')
+const {
+    Client
+} = require('discord.js')
+const {
+    MessageEmbed
+} = require('discord.js');
 const dotenv = require('dotenv')
 
-const { fetchData } = require('./fetchData')
-const { numberWithCommas } = require('./utils')
+const {
+    fetchData
+} = require('./fetchData')
+const {
+    numberWithCommas
+} = require('./utils')
 
 dotenv.config()
 
@@ -22,38 +31,46 @@ client.on('ready', () => console.log(`Bot successfully started as ${client.user.
 
 // Updates token price on bot's nickname every X amount of time
 client.setInterval(async () => {
-  const data = await fetchData()
+    const data = await fetchData()
 
-  if (!data) return
+    if (!data) return
 
-  const { price, symbol, change } = data
-  console.log('Price ' + price + ' Change ' + change)
-  
-  client.user.setActivity(
-    `${symbol} Price: $${numberWithCommas(price)} ${change}`,
-    { type: 'WATCHING' },
-  )
+    const {
+        price,
+        symbol,
+        change
+    } = data
+    console.log('Price ' + price + ' Change ' + change)
+
+    client.user.setActivity(
+        `${symbol} Price: $${numberWithCommas(price)} ${change}`, {
+            type: 'WATCHING'
+        },
+    )
 }, 1 * 60 * 1000)
 
 
 client.login(process.env.DISCORD_API_TOKEN)
 
 client.on('message', (msg) => {
-  if (msg.content === '$price') {
-    request('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=boring-protocol', (error, response, body) => {
-      console.log('Response ' + response)
-      console.log('Error ' + error)
-      if (error) {
-        console.log(error)
-        msg.reply('Unable to fetch price. Please retry later.')
-      }
-      else {
-      let object = JSON.parse(body);
-      const val = object.current_price
-      const ch = object.price_change_percentage_24h + '%'
-        msg.reply(`BOP current price: $${val}. Percentage changed in the last 24 hrs is ${ch}`)
-      }
-})
 
-}
-                              });
+    if (msg.content === `$price`) {
+        return request('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=boring-protocol', (err, response, body) => {
+            //console.log(body);
+            if (err) throw (err);
+            var object = JSON.parse(body);
+            var val = object[0].current_price;
+            var ch = object[0].price_change_percentage_24h + '%';
+            msg.channel.send(`BOP current price: $${val}. Percentage changed in the last 24 hrs is ${ch}`)
+            let price = new MessageEmbed()
+                .setColor('#32a860')
+                .setTitle('$BOP price')
+                .addField('🏷️ Current Price:', object[0].current_price)
+                .addField('💹 Price change in 24 hrs:', object[0].price_change_percentage_24h)
+
+            msg.channel.send({
+                embeds: [price]
+            });
+        });
+    }
+});
