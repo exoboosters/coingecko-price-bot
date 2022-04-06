@@ -61,16 +61,8 @@ client.on('message', (msg) => {
             var object = JSON.parse(body);
             var val = object[0].current_price;
             var ch = object[0].price_change_percentage_24h + '%';
-            msg.channel.send(`BOP current price: $${val}. Percentage changed in the last 24 hrs is ${ch}`)
-            let price = new MessageEmbed()
-                .setColor('#32a860')
-                .setTitle('$BOP price')
-                .addField('🏷️ Current Price:', object[0].current_price)
-                .addField('💹 Price change in 24 hrs:', object[0].price_change_percentage_24h)
-
-            msg.channel.send({
-                embeds: [price]
-            });
+            msg.channel.send(`BOP current price: **$${val}**. Percentage changed in the last 24 hrs is **${ch}**`)
+            msg.react("💹");
         });
     }
 });
